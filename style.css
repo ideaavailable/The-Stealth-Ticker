@@ -1,0 +1,420 @@
+/* ============================================
+   The Stealth Ticker - Style
+   A digital clock app with hidden stock chart
+   ============================================ */
+
+/* Reset & Base */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-tertiary: #21262d;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #484f58;
+  --accent-cyan: rgba(56, 189, 248, 1);
+  --accent-green: rgba(63, 185, 80, 1);
+  --accent-amber: rgba(227, 179, 65, 1);
+  --accent-magenta: rgba(219, 97, 162, 1);
+  --accent-white: rgba(230, 237, 243, 1);
+  --candle-up: rgba(63, 185, 80, 1);
+  --candle-down: rgba(248, 81, 73, 1);
+  --border-color: #30363d;
+  --panel-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  --glow-intensity: 0.08;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: default;
+  user-select: none;
+}
+
+/* ---- Background Chart Canvas ---- */
+#stealth-chart {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  opacity: 0.18;
+  transition: opacity 0.8s ease;
+}
+
+body:hover #stealth-chart {
+  opacity: 0.28;
+}
+
+body.settings-open #stealth-chart {
+  opacity: 0.08;
+}
+
+/* ---- Clock Container ---- */
+#clock-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  text-align: center;
+  pointer-events: none;
+}
+
+#date-display {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 300;
+  color: var(--text-secondary);
+  letter-spacing: 0.15em;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+#time-display {
+  font-family: 'Roboto Mono', monospace;
+  font-size: clamp(4rem, 12vw, 10rem);
+  font-weight: 300;
+  color: var(--text-primary);
+  letter-spacing: 0.05em;
+  text-shadow:
+    0 0 40px rgba(230, 237, 243, var(--glow-intensity)),
+    0 0 80px rgba(230, 237, 243, calc(var(--glow-intensity) * 0.5));
+  transition: text-shadow 0.5s ease;
+}
+
+#ticker-hint {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.2em;
+  margin-top: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+body:hover #ticker-hint {
+  opacity: 0.6;
+}
+
+/* ---- Data Source Indicator ---- */
+#data-source {
+  position: fixed;
+  top: 14px;
+  left: 16px;
+  z-index: 20;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+body:hover #data-source {
+  opacity: 0.5;
+}
+
+#data-source.live {
+  color: var(--candle-up);
+  border: 1px solid rgba(63, 185, 80, 0.3);
+}
+
+#data-source.mock {
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+}
+
+/* ---- Settings Trigger Button ---- */
+#settings-trigger {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 50;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity 0.4s ease, background-color 0.3s ease;
+}
+
+#settings-trigger:hover {
+  background-color: var(--bg-tertiary);
+}
+
+body:hover #settings-trigger {
+  opacity: 0.4;
+}
+
+#settings-trigger:hover {
+  opacity: 0.9 !important;
+}
+
+#settings-trigger .dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background-color: var(--text-secondary);
+}
+
+/* ---- Settings Panel ---- */
+#settings-panel {
+  position: fixed;
+  bottom: 60px;
+  right: 16px;
+  z-index: 100;
+  width: 290px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--panel-shadow);
+  transform: translateY(12px) scale(0.95);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#settings-panel.open {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  visibility: visible;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.settings-header h3 {
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+#settings-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#settings-close:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.settings-body {
+  padding: 14px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-body label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.settings-body label:first-child {
+  margin-top: 0;
+}
+
+.settings-body input[type="text"],
+.settings-body select {
+  width: 100%;
+  padding: 8px 12px;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.85rem;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.settings-body input[type="text"]:focus,
+.settings-body select:focus {
+  border-color: var(--accent-cyan);
+}
+
+.settings-body select {
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+
+.settings-body select option {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Ticker quick-select tags */
+.ticker-examples {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.ticker-tag {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.65rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  letter-spacing: 0.03em;
+}
+
+.ticker-tag:hover {
+  background-color: rgba(56, 189, 248, 0.15);
+  color: var(--accent-cyan);
+}
+
+/* Range slider */
+.settings-body input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  outline: none;
+  margin-top: 4px;
+}
+
+.settings-body input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+}
+
+.settings-body input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  cursor: pointer;
+  border: none;
+}
+
+#opacity-value {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: -4px;
+}
+
+.btn-apply {
+  margin-top: 8px;
+  padding: 9px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(56, 189, 248, 0.05));
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: var(--accent-cyan);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-apply:hover {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(56, 189, 248, 0.1));
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
+}
+
+.btn-apply:active {
+  transform: scale(0.97);
+}
+
+/* ---- Settings Overlay ---- */
+#settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: none;
+}
+
+#settings-overlay.active {
+  display: block;
+}
+
+/* ---- Subtle scan-line effect for extra "screen" feel ---- */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 600px) {
+  #time-display {
+    font-size: 3.2rem;
+  }
+
+  #date-display {
+    font-size: 0.85rem;
+  }
+
+  #settings-panel {
+    right: 8px;
+    left: 8px;
+    width: auto;
+  }
+}
