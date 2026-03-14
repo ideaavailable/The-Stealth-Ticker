@@ -15,6 +15,15 @@
     DEFAULT_INTERVAL: 30,  // seconds
   };
 
+  // Timeframe → Yahoo Finance interval & range mapping
+  const TIMEFRAME_MAP = {
+    '1m':  { interval: '1m',  range: '1d',  candleMs: 1 * 60 * 1000,    label: '1分足' },
+    '5m':  { interval: '5m',  range: '1d',  candleMs: 5 * 60 * 1000,    label: '5分足' },
+    '15m': { interval: '15m', range: '5d',  candleMs: 15 * 60 * 1000,   label: '15分足' },
+    '30m': { interval: '30m', range: '5d',  candleMs: 30 * 60 * 1000,   label: '30分足' },
+    '1d':  { interval: '1d',  range: '3mo', candleMs: 24 * 60 * 60 * 1000, label: '日足' },
+  };
+
   const COLOR_MAP = {
     cyan:    { up: 'rgba(56, 189, 248, 0.9)',  down: 'rgba(56, 130, 180, 0.7)',  wick: 'rgba(56, 189, 248, 0.5)' },
     green:   { up: 'rgba(63, 185, 80, 0.9)',   down: 'rgba(248, 81, 73, 0.9)',   wick: 'rgba(139, 148, 158, 0.4)' },
@@ -28,6 +37,8 @@
     ticker: '7203.T',
     color: 'green',
     opacity: 18,
+    timeframe: '5m',
+    clockFont: "'Roboto Mono', monospace",
     updateInterval: 30,
     ohlcData: [],
     lastPrice: null,
@@ -49,6 +60,8 @@
     chartColor:      document.getElementById('chart-color'),
     chartOpacity:    document.getElementById('chart-opacity'),
     opacityValue:    document.getElementById('opacity-value'),
+    timeframe:       document.getElementById('timeframe'),
+    clockFont:       document.getElementById('clock-font'),
     updateInterval:  document.getElementById('update-interval'),
     applyBtn:        document.getElementById('apply-settings'),
   };
@@ -74,7 +87,8 @@
   // ── Yahoo Finance Data Fetching ────────────
   async function fetchYahooData(symbol) {
     try {
-      const url = `${CONFIG.PROXY_BASE}/${encodeURIComponent(symbol)}?interval=5m&range=1d`;
+      const tf = TIMEFRAME_MAP[state.timeframe] || TIMEFRAME_MAP['5m'];
+      const url = `${CONFIG.PROXY_BASE}/${encodeURIComponent(symbol)}?interval=${tf.interval}&range=${tf.range}`;
       const response = await fetch(url);
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -118,7 +132,7 @@
     const data = [];
     let price = CONFIG.MOCK_INITIAL_PRICE + (Math.random() - 0.5) * 400;
     const now = Date.now();
-    const candleWidth = 5 * 60 * 1000; // 5 min per candle
+    const candleWidth = (TIMEFRAME_MAP[state.timeframe] || TIMEFRAME_MAP['5m']).candleMs;
 
     for (let i = CONFIG.MOCK_CANDLE_COUNT; i >= 0; i--) {
       const open = price;
@@ -159,7 +173,7 @@
 
     // Update the last candle or add a new one
     const now = Date.now();
-    const candleWidth = 5 * 60 * 1000;
+    const candleWidth = (TIMEFRAME_MAP[state.timeframe] || TIMEFRAME_MAP['5m']).candleMs;
     const lastTime = lastCandle.x;
 
     if (now - lastTime < candleWidth) {
@@ -267,14 +281,30 @@
     els.chartCanvas.style.opacity = (state.opacity / 100).toString();
   }
 
+  function applyClockFont() {
+    document.documentElement.style.setProperty('--clock-font', state.clockFont);
+  }
+
   function updateDataSourceIndicator() {
+    const tfLabel = (TIMEFRAME_MAP[state.timeframe] || TIMEFRAME_MAP['5m']).label;
     if (state.dataSource === 'live') {
-      els.dataSource.textContent = '● LIVE';
+      els.dataSource.textContent = `● LIVE  ${tfLabel}`;
       els.dataSource.className = 'live';
     } else {
-      els.dataSource.textContent = '○ MOCK';
+      els.dataSource.textContent = `○ MOCK  ${tfLabel}`;
       els.dataSource.className = 'mock';
     }
+  }
+
+  // Format price based on ticker type
+  function formatPrice(price, ticker) {
+    // Japanese stocks (.T suffix) typically trade in whole yen
+    if (ticker && ticker.endsWith('.T')) {
+      return price >= 10000
+        ? price.toLocaleString('ja-JP', { maximumFractionDigits: 0 })
+        : price.toFixed(1);
+    }
+    return price.toFixed(2);
   }
 
   function updateTickerHint() {
@@ -287,7 +317,7 @@
     const change = ((last.c - first.o) / first.o * 100).toFixed(2);
     const sign = change >= 0 ? '+' : '';
     state.lastPrice = last.c;
-    els.tickerHint.textContent = `${state.ticker}  ${last.c.toFixed(1)}  (${sign}${change}%)`;
+    els.tickerHint.textContent = `${state.ticker}  ${formatPrice(last.c, state.ticker)}  (${sign}${change}%)`;
   }
 
   // ── Data Loading ───────────────────────────
@@ -332,6 +362,7 @@
 
     createChart();
     applyOpacity();
+    applyClockFont();
     updateTickerHint();
     updateDataSourceIndicator();
   }
@@ -343,6 +374,8 @@
     document.body.classList.add('settings-open');
 
     els.tickerInput.value = state.ticker;
+    els.timeframe.value = state.timeframe;
+    els.clockFont.value = state.clockFont;
     els.chartColor.value = state.color;
     els.chartOpacity.value = state.opacity;
     els.opacityValue.textContent = state.opacity + '%';
@@ -357,9 +390,12 @@
 
   function applySettings() {
     const newTicker = els.tickerInput.value.trim().toUpperCase() || '7203.T';
-    const tickerChanged = newTicker !== state.ticker;
+    const newTimeframe = els.timeframe.value;
+    const needsReload = newTicker !== state.ticker || newTimeframe !== state.timeframe;
 
     state.ticker = newTicker;
+    state.timeframe = newTimeframe;
+    state.clockFont = els.clockFont.value;
     state.color = els.chartColor.value;
     state.opacity = parseInt(els.chartOpacity.value, 10);
     state.updateInterval = parseInt(els.updateInterval.value, 10);
@@ -369,12 +405,13 @@
     // Restart data interval with new timing
     startDataInterval();
 
-    if (tickerChanged) {
+    if (needsReload) {
       resetAndLoad();
     } else {
       refreshChartData();
       applyOpacity();
     }
+    applyClockFont();
 
     closeSettings();
   }
@@ -391,6 +428,8 @@
       ticker: state.ticker,
       color: state.color,
       opacity: state.opacity,
+      timeframe: state.timeframe,
+      clockFont: state.clockFont,
       updateInterval: state.updateInterval,
     };
     try {
@@ -406,6 +445,8 @@
         state.ticker = data.ticker || '7203.T';
         state.color = data.color || 'green';
         state.opacity = data.opacity != null ? data.opacity : 18;
+        state.timeframe = data.timeframe || '5m';
+        state.clockFont = data.clockFont || "'Roboto Mono', monospace";
         state.updateInterval = data.updateInterval || 30;
       }
     } catch (e) { /* ignore */ }

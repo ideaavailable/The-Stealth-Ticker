@@ -7,7 +7,7 @@
   <title>Digital Clock</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;700&family=Inter:wght@300;400;500&family=Orbitron:wght@300;400;500;700&family=Share+Tech+Mono&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
   <!-- Chart.js core -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <!-- Luxon (date library for Chart.js time scale) -->
@@ -54,6 +54,23 @@
         <span class="ticker-tag" data-ticker="6758.T">ソニー</span>
         <span class="ticker-tag" data-ticker="^N225">日経225</span>
       </div>
+
+      <label for="timeframe">Timeframe</label>
+      <select id="timeframe">
+        <option value="1m">1分足</option>
+        <option value="5m" selected>5分足</option>
+        <option value="15m">15分足</option>
+        <option value="30m">30分足</option>
+        <option value="1d">日足</option>
+      </select>
+
+      <label for="clock-font">Clock Font</label>
+      <select id="clock-font">
+        <option value="'Roboto Mono', monospace">Roboto Mono</option>
+        <option value="'Orbitron', sans-serif">Orbitron</option>
+        <option value="'Share Tech Mono', monospace">Share Tech Mono</option>
+        <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+      </select>
 
       <label for="chart-color">Chart Color</label>
       <select id="chart-color">

@@ -27,6 +27,7 @@
   --border-color: #30363d;
   --panel-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
   --glow-intensity: 0.08;
+  --clock-font: 'Roboto Mono', monospace;
 }
 
 html, body {
@@ -82,7 +83,7 @@ body.settings-open #stealth-chart {
 }
 
 #time-display {
-  font-family: 'Roboto Mono', monospace;
+  font-family: var(--clock-font);
   font-size: clamp(4rem, 12vw, 10rem);
   font-weight: 300;
   color: var(--text-primary);
